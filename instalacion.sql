@@ -8,8 +8,10 @@
 
 -- 1. CREAR BASE DE DATOS (si no existe)
 -- ============================================
-CREATE DATABASE IF NOT EXISTS mantenimiento;
-USE mantenimiento;
+#CREATE DATABASE IF NOT EXISTS mantenimiento;
+#USE mantenimiento;
+-- No crear base de datos, ya existe
+USE if0_42184275_gruvcontrol_db;
 
 -- 2. TABLA: usuarios
 -- ============================================
