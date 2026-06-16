@@ -329,4 +329,11 @@ public function contarConFiltros($buscar = '', $estado = '') {
         $stmt->execute([$estado]);
         return (int)$stmt->fetchColumn();
     }
+
+    public function buscarEquiposLive($texto) {
+    $stmt = $this->db->prepare("SELECT * FROM equipos WHERE nombre LIKE ? OR codigo_inventario LIKE ? OR responsable LIKE ? ORDER BY id DESC");
+    $busqueda = "%" . $texto . "%";
+    $stmt->execute([$busqueda, $busqueda, $busqueda]);
+    return $stmt;
+}
 }

@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="/proyectophp/assets/js/validacion.js"></script>
+    <script src="assets/js/validacion.js"></script>
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -58,10 +58,12 @@
         body.light .alert-item { color: #3c3836; }
         .search-card { background: #3c3836; border: 1px solid #504945; border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; }
         body.light .search-card { background: #ebdbb2; border-color: #d5c4a1; }
-        .search-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        .search-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
         .search-input { flex: 1; padding: 0.6rem 1rem; background: #282828; border: 1px solid #504945; border-radius: 8px; color: #ebdbb2; font-family: monospace; font-size: 0.8rem; }
         body.light .search-input { background: #fbf1c7; border-color: #d5c4a1; color: #3c3836; }
         .search-input:focus { outline: none; border-color: #458588; }
+        .loading { display: none; padding: 0.5rem; }
+        .badge-info { background: #458588; color: #fbf1c7; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.65rem; }
         .form-label { display: block; margin-bottom: 0.5rem; color: #ebdbb2; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
         body.light .form-label { color: #3c3836; }
         .form-control { width: 100%; padding: 0.5rem; background: #282828; border: 1px solid #504945; border-radius: 8px; color: #ebdbb2; font-family: monospace; font-size: 0.8rem; }
@@ -114,16 +116,6 @@ $mantenimientoGlobal = $mantenimientoGlobal ?? 0;
 $danadosGlobal = $danadosGlobal ?? 0;
 $pagina = $pagina ?? 1;
 $totalPaginas = $totalPaginas ?? 1;
-$total = count($equipos);
-$operativos = 0;
-$mantenimiento = 0;
-$danados = 0;
-
-foreach($equipos as $equipo){
-    if($equipo['estado'] == 'Operativo') $operativos++;
-    elseif($equipo['estado'] == 'Mantenimiento') $mantenimiento++;
-    else $danados++;
-}
 ?>
 
 <!-- Header -->
@@ -151,24 +143,11 @@ foreach($equipos as $equipo){
 </div>
 
 <!-- Stats Cards -->
-<!-- Stats Cards -->
 <div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-number"><?= $totalGlobal ?? count($equipos) ?></div>
-        <div class="stat-label">Total Equipos</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-number" style="color: #98971a"><?= $operativosGlobal ?? 0 ?></div>
-        <div class="stat-label">Operativos</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-number" style="color: #d79921"><?= $mantenimientoGlobal ?? 0 ?></div>
-        <div class="stat-label">En Mantenimiento</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-number" style="color: #cc241d"><?= $danadosGlobal ?? 0 ?></div>
-        <div class="stat-label">Dañados / Baja</div>
-    </div>
+    <div class="stat-card"><div class="stat-number"><?= $totalGlobal ?></div><div class="stat-label">Total Equipos</div></div>
+    <div class="stat-card"><div class="stat-number" style="color: #98971a"><?= $operativosGlobal ?></div><div class="stat-label">Operativos</div></div>
+    <div class="stat-card"><div class="stat-number" style="color: #d79921"><?= $mantenimientoGlobal ?></div><div class="stat-label">En Mantenimiento</div></div>
+    <div class="stat-card"><div class="stat-number" style="color: #cc241d"><?= $danadosGlobal ?></div><div class="stat-label">Dañados / Baja</div></div>
 </div>
 
 <!-- Gráfico de Estados -->
@@ -189,13 +168,14 @@ foreach($equipos as $equipo){
 
 <!-- Search y Filtros -->
 <div class="search-card">
-    <form method="GET" id="filtroForm">
+    <div class="search-row">
+        <input type="text" id="liveSearch" class="search-input" placeholder="🔍 Buscar en vivo (escribe aquí)..." autocomplete="off">
+        <div id="loading" class="loading"><span class="badge-info">🔍 Buscando...</span></div>
+        <a href="index.php?view=listar" class="btn btn-secondary">Limpiar</a>
+    </div>
+    
+    <form method="GET" id="filtroForm" style="margin-top: 1rem;">
         <input type="hidden" name="view" value="listar">
-        <div class="search-row">
-            <input type="text" name="buscar" class="search-input" placeholder="🔍 Buscar por nombre, código o responsable..." value="<?= htmlspecialchars($_GET['buscar'] ?? '') ?>">
-            <button type="submit" class="btn btn-primary">Buscar</button>
-            <a href="index.php?view=listar" class="btn btn-secondary">Limpiar</a>
-        </div>
         <div class="filtros-row">
             <div>
                 <label class="form-label">📌 Filtrar por Estado</label>
@@ -248,16 +228,19 @@ foreach($equipos as $equipo){
                     else echo '<span class="badge badge-danger">Dañado</span>'; ?>
                 </td>
                 <td><?= $equipo['fecha_mantenimiento'] ?></td>
-                <td><?php if(!empty($equipo['fecha_proximo_mantenimiento']) && strtotime($equipo['fecha_proximo_mantenimiento']) < strtotime(date('Y-m-d'))){
-                            echo '<span class="date-danger">⚠️ ' . $equipo['fecha_proximo_mantenimiento'] . '</span>';
-                        } else { echo $equipo['fecha_proximo_mantenimiento']; } ?>
+                <td>
+                    <?php if(!empty($equipo['fecha_proximo_mantenimiento']) && strtotime($equipo['fecha_proximo_mantenimiento']) < strtotime(date('Y-m-d'))){
+                        echo '<span class="date-danger">⚠️ ' . $equipo['fecha_proximo_mantenimiento'] . '</span>';
+                    } else { echo $equipo['fecha_proximo_mantenimiento']; } ?>
                 </td>
-                <td><div class="btn-group">
-                    <a href="index.php?view=historial&id=<?= $equipo['id'] ?>" class="btn btn-info" style="padding: 0.25rem 0.6rem; font-size: 0.65rem;">🔧 Mantenimiento</a>
-                    <?php if($_SESSION['rol'] == 'Administrador'): ?>
-                        <a href="index.php?view=eliminar&id=<?= $equipo['id'] ?>" class="btn btn-danger" style="padding: 0.25rem 0.6rem; font-size: 0.65rem;" onclick="return confirm('¿Deseas eliminar este equipo?')">🗑️ Eliminar</a>
-                    <?php endif; ?>
-                </div></td>
+                <td>
+                    <div class="btn-group">
+                        <a href="index.php?view=historial&id=<?= $equipo['id'] ?>" class="btn btn-info" style="padding: 0.25rem 0.6rem; font-size: 0.65rem;">🔧 Mantenimiento</a>
+                        <?php if($_SESSION['rol'] == 'Administrador'): ?>
+                            <a href="index.php?view=eliminar&id=<?= $equipo['id'] ?>" class="btn btn-danger" style="padding: 0.25rem 0.6rem; font-size: 0.65rem;" onclick="return confirm('¿Deseas eliminar este equipo?')">🗑️ Eliminar</a>
+                        <?php endif; ?>
+                    </div>
+                </td>
             </tr>
             <?php endforeach; ?>
             </tbody>
@@ -271,11 +254,9 @@ foreach($equipos as $equipo){
         <?php if($pagina > 1): ?>
             <a href="?view=listar&pagina=<?= $pagina-1 ?>&buscar=<?= urlencode($_GET['buscar'] ?? '') ?>&estado=<?= urlencode($_GET['estado'] ?? '') ?>&orden=<?= urlencode($_GET['orden'] ?? 'id_desc') ?>" class="btn btn-secondary">◀ Anterior</a>
         <?php endif; ?>
-        
         <?php for($i = 1; $i <= $totalPaginas; $i++): ?>
             <a href="?view=listar&pagina=<?= $i ?>&buscar=<?= urlencode($_GET['buscar'] ?? '') ?>&estado=<?= urlencode($_GET['estado'] ?? '') ?>&orden=<?= urlencode($_GET['orden'] ?? 'id_desc') ?>" class="btn <?= $i == $pagina ? 'btn-primary' : 'btn-secondary' ?>" style="min-width: 35px; text-align: center;"><?= $i ?></a>
         <?php endfor; ?>
-        
         <?php if($pagina < $totalPaginas): ?>
             <a href="?view=listar&pagina=<?= $pagina+1 ?>&buscar=<?= urlencode($_GET['buscar'] ?? '') ?>&estado=<?= urlencode($_GET['estado'] ?? '') ?>&orden=<?= urlencode($_GET['orden'] ?? 'id_desc') ?>" class="btn btn-secondary">Siguiente ▶</a>
         <?php endif; ?>
@@ -287,63 +268,17 @@ foreach($equipos as $equipo){
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Usar variables GLOBALES, no las de la página
-    const operativosGlobal = <?= $operativosGlobal ?? 0 ?>;
-    const mantenimientoGlobal = <?= $mantenimientoGlobal ?? 0 ?>;
-    const danadosGlobal = <?= $danadosGlobal ?? 0 ?>;
-    
+    const operativosGlobal = <?= $operativosGlobal ?>;
+    const mantenimientoGlobal = <?= $mantenimientoGlobal ?>;
+    const danadosGlobal = <?= $danadosGlobal ?>;
     const ctx = document.getElementById('estadosChart').getContext('2d');
-    
     new Chart(ctx, {
         type: 'bar',
-        data: {
-            labels: ['🟢 Operativos', '🟡 Mantenimiento', '🔴 Dañados'],
-            datasets: [{
-                label: 'Cantidad de Equipos',
-                data: [operativosGlobal, mantenimientoGlobal, danadosGlobal],
-                backgroundColor: ['#98971a', '#d79921', '#cc241d'],
-                borderWidth: 0,
-                borderRadius: 6,
-                barPercentage: 0.6,
-                categoryPercentage: 0.7
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    labels: {
-                        color: document.body.classList.contains('light') ? '#3c3836' : '#ebdbb2',
-                        font: { family: 'JetBrains Mono', size: 10 }
-                    },
-                    position: 'top',
-                },
-                tooltip: {
-                    backgroundColor: '#282828',
-                    titleColor: '#ebdbb2',
-                    bodyColor: '#bdae93',
-                    borderColor: '#d79921',
-                    borderWidth: 1
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: { stepSize: 1, color: '#a89984', font: { size: 9 } },
-                    grid: { color: '#504945' }
-                },
-                x: {
-                    ticks: { color: '#a89984', font: { size: 9 } },
-                    grid: { color: '#504945' }
-                }
-            }
-        }
+        data: { labels: ['🟢 Operativos', '🟡 Mantenimiento', '🔴 Dañados'], datasets: [{ label: 'Cantidad de Equipos', data: [operativosGlobal, mantenimientoGlobal, danadosGlobal], backgroundColor: ['#98971a', '#d79921', '#cc241d'], borderWidth: 0, borderRadius: 6 }] },
+        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: document.body.classList.contains('light') ? '#3c3836' : '#ebdbb2', font: { size: 10 } }, position: 'top' }, tooltip: { backgroundColor: '#282828', titleColor: '#ebdbb2', bodyColor: '#bdae93', borderColor: '#d79921', borderWidth: 1 } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1, color: '#a89984' }, grid: { color: '#504945' } }, x: { ticks: { color: '#a89984' }, grid: { color: '#504945' } } } }
     });
 });
-</script>
 
-<script>
 document.addEventListener('DOMContentLoaded', function() {
     const savedTheme = localStorage.getItem('gruvboxTheme');
     if (savedTheme === 'light') document.body.classList.add('light');
@@ -353,10 +288,47 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.classList.toggle('light');
             localStorage.setItem('gruvboxTheme', document.body.classList.contains('light') ? 'light' : 'dark');
             themeToggle.innerHTML = document.body.classList.contains('light') ? '🌙 Dark' : '☀️ Light';
-            location.reload();
         });
         themeToggle.innerHTML = document.body.classList.contains('light') ? '🌙 Dark' : '☀️ Light';
     }
+});
+
+$(document).ready(function() {
+    let timeout = null;
+    $('#liveSearch').on('keyup', function() {
+        clearTimeout(timeout);
+        timeout = setTimeout(function() {
+            let busqueda = $('#liveSearch').val();
+            $.ajax({
+                url: 'index.php?view=buscarLive',
+                type: 'POST',
+                data: { busqueda: busqueda },
+                dataType: 'json',
+                beforeSend: function() { $('#loading').fadeIn(); },
+                success: function(data) {
+                    $('#loading').fadeOut();
+                    $('.table tbody').empty();
+                    if(data.equipos.length === 0) {
+                        $('.table tbody').append('<tr><td colspan="9" class="empty-state">No se encontraron equipos</td></tr>');
+                    } else {
+                        $.each(data.equipos, function(i, e) {
+                            let estadoClass = (e.estado == 'Operativo') ? 'badge-success' : ((e.estado == 'Mantenimiento') ? 'badge-warning' : 'badge-danger');
+                            let estadoText = e.estado;
+                            let row = '<tr><td>' + e.id + '</td><td>' + escapeHtml(e.codigo_inventario) + '</td><td>' + escapeHtml(e.nombre) + '</td><td>' + escapeHtml(e.ubicacion) + '</td><td>' + escapeHtml(e.responsable) + '</td><td><span class="badge ' + estadoClass + '">' + estadoText + '</span></td><td>' + (e.fecha_mantenimiento || '-') + '</td><td>' + (e.fecha_proximo_mantenimiento || '-') + '</td><td><div class="btn-group"><a href="index.php?view=historial&id=' + e.id + '" class="btn btn-info" style="padding: 0.25rem 0.6rem; font-size: 0.65rem;">🔧 Mantenimiento</a><?php if($_SESSION["rol"] == "Administrador"): ?><a href="index.php?view=eliminar&id=' + e.id + '" class="btn btn-danger" style="padding: 0.25rem 0.6rem; font-size: 0.65rem;" onclick="return confirm(\'¿Deseas eliminar este equipo?\')">🗑️ Eliminar</a><?php endif; ?></div></td></tr>';
+                            $('.table tbody').append(row);
+                        });
+                    }
+                    $('.badge-count').text(data.equipos.length + ' resultado(s)');
+                    $('.stat-number').eq(0).text(data.contadores.total);
+                    $('.stat-number').eq(1).text(data.contadores.operativos).css('color', '#98971a');
+                    $('.stat-number').eq(2).text(data.contadores.mantenimiento).css('color', '#d79921');
+                    $('.stat-number').eq(3).text(data.contadores.danados).css('color', '#cc241d');
+                },
+                error: function() { $('#loading').fadeOut(); }
+            });
+        }, 300);
+    });
+    function escapeHtml(text) { if(!text) return ''; return text.replace(/[&<>]/g, function(m) { if(m === '&') return '&amp;'; if(m === '<') return '&lt;'; if(m === '>') return '&gt;'; return m; }); }
 });
 </script>
 

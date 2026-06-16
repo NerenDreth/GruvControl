@@ -217,4 +217,8 @@ case 'usuarios':
     default:
         $controller->index();
         break;
+
+    case 'buscarLive':
+    $controller->buscarLive();
+    break;
 }   

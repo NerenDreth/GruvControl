@@ -200,4 +200,80 @@ $writer->save('php://output');
 exit;
 }
 
+public function buscarLive() {
+    header('Content-Type: application/json');
+    
+    $busqueda = $_POST['busqueda'] ?? '';
+    $equipos = [];
+    
+    if(!empty($busqueda)) {
+        $stmt = $this->modelo->db->prepare(
+            "SELECT * FROM equipos 
+             WHERE nombre LIKE ? 
+             OR codigo_inventario LIKE ? 
+             OR responsable LIKE ? 
+             ORDER BY id DESC"
+        );
+        $busquedaParam = "%" . $busqueda . "%";
+        $stmt->execute([$busquedaParam, $busquedaParam, $busquedaParam]);
+        $equipos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } else {
+        $equipos = $this->modelo->obtenerTodos();
+    }
+    
+    // Contadores para las tarjetas
+    $total = 0;
+    $operativos = 0;
+    $mantenimiento = 0;
+    $danados = 0;
+    
+    foreach($equipos as $e) {
+        $total++;
+        if($e['estado'] == 'Operativo') $operativos++;
+        elseif($e['estado'] == 'Mantenimiento') $mantenimiento++;
+        else $danados++;
+    }
+    
+    echo json_encode([
+        'equipos' => $equipos,
+        'contadores' => [
+            'total' => $total,
+            'operativos' => $operativos,
+            'mantenimiento' => $mantenimiento,
+            'danados' => $danados
+        ]
+    ]);
+    exit;
+
+    public function buscarLive() {
+    header('Content-Type: application/json');
+    
+    $busqueda = $_POST['busqueda'] ?? '';
+    
+    if(!empty($busqueda)) {
+        $stmt = $this->modelo->buscarEquiposLive($busqueda);
+        $equipos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } else {
+        $equipos = $this->modelo->obtenerTodos();
+    }
+    
+    $total = count($equipos);
+    $operativos = 0;
+    $mantenimiento = 0;
+    $danados = 0;
+    
+    foreach($equipos as $e) {
+        if($e['estado'] == 'Operativo') $operativos++;
+        elseif($e['estado'] == 'Mantenimiento') $mantenimiento++;
+        else $danados++;
+    }
+    
+    echo json_encode([
+        'equipos' => $equipos,
+        'contadores' => ['total' => $total, 'operativos' => $operativos, 'mantenimiento' => $mantenimiento, 'danados' => $danados]
+    ]);
+    exit;
+}
+}
+
 }
