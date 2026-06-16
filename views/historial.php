@@ -105,19 +105,21 @@
             <?php else: ?>
                 <div style="overflow-x: auto;">
                     <table class="table">
-                        <thead><tr><th>ID</th><th>Técnico</th><th>Trabajo Realizado</th><th>Observaciones</th><th>Estado</th><th>Fecha</th></tr></thead>
-                        <tbody>
-                        <?php foreach($historial as $registro): ?>
-                            <tr>
-                                <td><?= $registro['id'] ?></td>
-                                <td><?= htmlspecialchars($registro['tecnico']) ?></td>
-                                <td><?= htmlspecialchars($registro['descripcion']) ?></td>
-                                <td><?= htmlspecialchars($registro['observaciones']) ?></td>
-                                <td><?= htmlspecialchars($registro['estado']) ?></td>
-                                <td><?= $registro['fecha'] ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                        </tbody>
+                        <thead>
+    <tr><th>ID</th><th>Técnico</th><th>Trabajo Realizado</th><th>Observaciones</th><th>Estado</th><th>Fecha</th></tr>
+</thead>
+<tbody>
+<?php foreach($historial as $registro): ?>
+    <tr>
+        <td><?= $registro['id'] ?></td>
+        <td><?= htmlspecialchars($registro['tecnico_nombre'] ?? 'Usuario desconocido') ?></td>
+        <td><?= htmlspecialchars($registro['descripcion']) ?></td>
+        <td><?= htmlspecialchars($registro['observaciones']) ?></td>
+        <td><?= htmlspecialchars($registro['estado']) ?></td>
+        <td><?= $registro['fecha'] ?></td>
+    </tr>
+<?php endforeach; ?>
+</tbody>
                     </table>
                 </div>
             <?php endif; ?>

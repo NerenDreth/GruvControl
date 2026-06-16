@@ -44,21 +44,21 @@ class EquipoController {
         require_once 'views/lista_equipos.php';
     }
 
-    public function guardar() {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->modelo->registrar(
-                $_POST['nombre'],
-                $_POST['estado'],
-                $_POST['codigo_inventario'],
-                $_POST['ubicacion'],
-                $_POST['responsable'],
-                $_POST['fecha_proximo_mantenimiento']
-            );
-            $_SESSION['toast'] = ['type' => 'success', 'message' => '✅ Equipo registrado correctamente'];
-        }
-        header('Location: index.php?view=listar');
-        exit;
+   public function guardar() {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $this->modelo->registrar(
+            $_POST['nombre'],
+            $_POST['estado'],
+            $_POST['codigo_inventario'],
+            $_POST['ubicacion'],
+            $_SESSION['usuario_id'],  // Cambiado: usar ID en lugar de nombre
+            $_POST['fecha_proximo_mantenimiento']
+        );
+        $_SESSION['toast'] = ['type' => 'success', 'message' => '✅ Equipo registrado correctamente'];
     }
+    header('Location: index.php?view=listar');
+    exit;
+}
 
     public function editar($id) {
         $equipo = $this->modelo->obtenerPorId($id);
@@ -95,21 +95,21 @@ class EquipoController {
         require_once 'views/historial.php';
     }
 
-    public function guardarMantenimiento() {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->modelo->registrarMantenimiento(
-                $_POST['equipo_id'],
-                $_SESSION['usuario'],
-                $_POST['descripcion'],
-                $_POST['observaciones'],
-                $_POST['estado'],
-                $_POST['fecha_proximo_mantenimiento']
-            );
-            $_SESSION['toast'] = ['type' => 'success', 'message' => '🔧 Mantenimiento registrado correctamente'];
-            header('Location: index.php?view=historial&id=' . $_POST['equipo_id']);
-            exit;
-        }
+   public function guardarMantenimiento() {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $this->modelo->registrarMantenimiento(
+            $_POST['equipo_id'],
+            $_SESSION['usuario_id'],  // Cambiado: usar ID en lugar de nombre
+            $_POST['descripcion'],
+            $_POST['observaciones'],
+            $_POST['estado'],
+            $_POST['fecha_proximo_mantenimiento']
+        );
+        $_SESSION['toast'] = ['type' => 'success', 'message' => '🔧 Mantenimiento registrado correctamente'];
+        header('Location: index.php?view=historial&id=' . $_POST['equipo_id']);
+        exit;
     }
+}
 
     public function bitacora() {
         $bitacora = $this->modelo->obtenerBitacora();

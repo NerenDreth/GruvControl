@@ -9,28 +9,18 @@ class Usuario {
     }
 
     public function login($usuario, $password) {
-
-        $stmt = $this->db->prepare(
-            "SELECT *
-             FROM usuarios
-             WHERE usuario = ?"
-        );
-
-        $stmt->execute([$usuario]);
-
-        $usuarioDB = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if(!$usuarioDB){
-            return false;
-        }
-
-        // Verificar contraseña hasheada con bcrypt
-        if(!password_verify($password, $usuarioDB['password'])){
-            return false;
-        }
-
-        return $usuarioDB;
-    }
+    $stmt = $this->db->prepare("SELECT * FROM usuarios WHERE usuario = ?");
+    $stmt->execute([$usuario]);
+    $usuarioDB = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if(!$usuarioDB) return false;
+    if(!password_verify($password, $usuarioDB['password'])) return false;
+    
+    // Guardar también el ID en la sesión
+    $_SESSION['usuario_id'] = $usuarioDB['id'];
+    
+    return $usuarioDB;
+}
 
     public function obtenerTodos() {
 

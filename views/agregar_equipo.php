@@ -202,11 +202,7 @@
                         <label class="form-label">Ubicación</label>
                         <input type="text" name="ubicacion" class="form-control">
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Responsable</label>
-                        <input type="text" class="form-control" value="<?= $_SESSION['usuario'] ?>" readonly>
-                        <input type="hidden" name="responsable" value="<?= $_SESSION['usuario'] ?>">
-                    </div>
+                   
                 </div>
                 
                 <div class="row">
