@@ -11,6 +11,11 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="assets/js/validacion.js"></script>
+    <!-- SweetAlert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Toastr -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -95,6 +100,9 @@
         .empty-state { text-align: center; padding: 2rem; color: #928374; font-size: 0.8rem; }
         .pagination-container { display: flex; justify-content: center; gap: 0.5rem; padding: 1rem; border-top: 1px solid #504945; flex-wrap: wrap; }
         body.light .pagination-container { border-top-color: #d5c4a1; }
+        .toast-success { background-color: #98971a !important; }
+        .toast-error { background-color: #cc241d !important; }
+        .toast-info { background-color: #458588 !important; }
         @media (max-width: 768px) {
             body { padding: 1rem; }
             .table thead th, .table tbody td { padding: 0.4rem; font-size: 0.65rem; }
@@ -109,7 +117,6 @@
 <div class="container">
 
 <?php
-// Asegurar que las variables globales existan
 $totalGlobal = $totalGlobal ?? 0;
 $operativosGlobal = $operativosGlobal ?? 0;
 $mantenimientoGlobal = $mantenimientoGlobal ?? 0;
@@ -117,6 +124,17 @@ $danadosGlobal = $danadosGlobal ?? 0;
 $pagina = $pagina ?? 1;
 $totalPaginas = $totalPaginas ?? 1;
 ?>
+
+<?php if(isset($_SESSION['toast'])): ?>
+<script>
+    toastr.options = {
+        "positionClass": "toast-top-right",
+        "timeOut": "3000",
+        "closeButton": true
+    };
+    toastr.<?= $_SESSION['toast']['type'] ?>('<?= $_SESSION['toast']['message'] ?>');
+</script>
+<?php unset($_SESSION['toast']); endif; ?>
 
 <!-- Header -->
 <div class="header">
@@ -150,7 +168,7 @@ $totalPaginas = $totalPaginas ?? 1;
     <div class="stat-card"><div class="stat-number" style="color: #cc241d"><?= $danadosGlobal ?></div><div class="stat-label">Dañados / Baja</div></div>
 </div>
 
-<!-- Gráfico de Estados -->
+<!-- Gráfico -->
 <div class="chart-card">
     <h5>📊 EQUIPOS POR ESTADO</h5>
     <div class="chart-container"><canvas id="estadosChart"></canvas></div>
@@ -166,10 +184,10 @@ $totalPaginas = $totalPaginas ?? 1;
 </div>
 <?php endif; ?>
 
-<!-- Search y Filtros -->
+<!-- Search -->
 <div class="search-card">
     <div class="search-row">
-        <input type="text" id="liveSearch" class="search-input" placeholder="🔍 Buscar en vivo (escribe aquí)..." autocomplete="off">
+        <input type="text" id="liveSearch" class="search-input" placeholder="🔍 Buscar en vivo..." autocomplete="off">
         <div id="loading" class="loading"><span class="badge-info">🔍 Buscando...</span></div>
         <a href="index.php?view=listar" class="btn btn-secondary">Limpiar</a>
     </div>
@@ -209,11 +227,13 @@ $totalPaginas = $totalPaginas ?? 1;
     </div>
     
     <?php if(empty($equipos)): ?>
-        <div class="empty-state">No se encontraron equipos con los criterios de búsqueda.</div>
+        <div class="empty-state">No se encontraron equipos.</div>
     <?php else: ?>
     <div style="overflow-x: auto;">
         <table class="table">
-            <thead><tr><th>ID</th><th>Código</th><th>Nombre</th><th>Ubicación</th><th>Responsable</th><th>Estado</th><th>Último Mant.</th><th>Próximo Mant.</th><th>Acciones</th></tr></thead>
+            <thead>
+                <tr><th>ID</th><th>Código</th><th>Nombre</th><th>Ubicación</th><th>Responsable</th><th>Estado</th><th>Último Mant.</th><th>Próximo Mant.</th><th>Acciones</th></tr>
+            </thead>
             <tbody>
             <?php foreach($equipos as $equipo): ?>
             <tr>
@@ -237,7 +257,7 @@ $totalPaginas = $totalPaginas ?? 1;
                     <div class="btn-group">
                         <a href="index.php?view=historial&id=<?= $equipo['id'] ?>" class="btn btn-info" style="padding: 0.25rem 0.6rem; font-size: 0.65rem;">🔧 Mantenimiento</a>
                         <?php if($_SESSION['rol'] == 'Administrador'): ?>
-                            <a href="index.php?view=eliminar&id=<?= $equipo['id'] ?>" class="btn btn-danger" style="padding: 0.25rem 0.6rem; font-size: 0.65rem;" onclick="return confirm('¿Deseas eliminar este equipo?')">🗑️ Eliminar</a>
+                            <button onclick="confirmarEliminacion(<?= $equipo['id'] ?>)" class="btn btn-danger" style="padding: 0.25rem 0.6rem; font-size: 0.65rem;">🗑️ Eliminar</button>
                         <?php endif; ?>
                     </div>
                 </td>
@@ -274,8 +294,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const ctx = document.getElementById('estadosChart').getContext('2d');
     new Chart(ctx, {
         type: 'bar',
-        data: { labels: ['🟢 Operativos', '🟡 Mantenimiento', '🔴 Dañados'], datasets: [{ label: 'Cantidad de Equipos', data: [operativosGlobal, mantenimientoGlobal, danadosGlobal], backgroundColor: ['#98971a', '#d79921', '#cc241d'], borderWidth: 0, borderRadius: 6 }] },
-        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: document.body.classList.contains('light') ? '#3c3836' : '#ebdbb2', font: { size: 10 } }, position: 'top' }, tooltip: { backgroundColor: '#282828', titleColor: '#ebdbb2', bodyColor: '#bdae93', borderColor: '#d79921', borderWidth: 1 } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1, color: '#a89984' }, grid: { color: '#504945' } }, x: { ticks: { color: '#a89984' }, grid: { color: '#504945' } } } }
+        data: {
+            labels: ['🟢 Operativos', '🟡 Mantenimiento', '🔴 Dañados'],
+            datasets: [{
+                label: 'Cantidad de Equipos',
+                data: [operativosGlobal, mantenimientoGlobal, danadosGlobal],
+                backgroundColor: ['#98971a', '#d79921', '#cc241d'],
+                borderWidth: 0,
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { labels: { color: document.body.classList.contains('light') ? '#3c3836' : '#ebdbb2', font: { size: 10 } }, position: 'top' },
+                tooltip: { backgroundColor: '#282828', titleColor: '#ebdbb2', bodyColor: '#bdae93', borderColor: '#d79921', borderWidth: 1 }
+            },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1, color: '#a89984' }, grid: { color: '#504945' } },
+                x: { ticks: { color: '#a89984' }, grid: { color: '#504945' } }
+            }
+        }
     });
 });
 
@@ -292,6 +332,25 @@ document.addEventListener('DOMContentLoaded', function() {
         themeToggle.innerHTML = document.body.classList.contains('light') ? '🌙 Dark' : '☀️ Light';
     }
 });
+
+function confirmarEliminacion(id) {
+    Swal.fire({
+        title: '¿Eliminar equipo?',
+        text: 'Esta acción no se puede deshacer',
+        icon: 'warning',
+        background: '#3c3836',
+        color: '#ebdbb2',
+        confirmButtonColor: '#cc241d',
+        cancelButtonColor: '#928374',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        showCancelButton: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = 'index.php?view=eliminar&id=' + id;
+        }
+    });
+}
 
 $(document).ready(function() {
     let timeout = null;
@@ -313,8 +372,24 @@ $(document).ready(function() {
                     } else {
                         $.each(data.equipos, function(i, e) {
                             let estadoClass = (e.estado == 'Operativo') ? 'badge-success' : ((e.estado == 'Mantenimiento') ? 'badge-warning' : 'badge-danger');
-                            let estadoText = e.estado;
-                            let row = '<tr><td>' + e.id + '</td><td>' + escapeHtml(e.codigo_inventario) + '</td><td>' + escapeHtml(e.nombre) + '</td><td>' + escapeHtml(e.ubicacion) + '</td><td>' + escapeHtml(e.responsable) + '</td><td><span class="badge ' + estadoClass + '">' + estadoText + '</span></td><td>' + (e.fecha_mantenimiento || '-') + '</td><td>' + (e.fecha_proximo_mantenimiento || '-') + '</td><td><div class="btn-group"><a href="index.php?view=historial&id=' + e.id + '" class="btn btn-info" style="padding: 0.25rem 0.6rem; font-size: 0.65rem;">🔧 Mantenimiento</a><?php if($_SESSION["rol"] == "Administrador"): ?><a href="index.php?view=eliminar&id=' + e.id + '" class="btn btn-danger" style="padding: 0.25rem 0.6rem; font-size: 0.65rem;" onclick="return confirm(\'¿Deseas eliminar este equipo?\')">🗑️ Eliminar</a><?php endif; ?></div></td></tr>';
+                            let botonEliminar = '';
+                            if (<?= $_SESSION['rol'] == 'Administrador' ? 'true' : 'false' ?>) {
+                                botonEliminar = '<button onclick="confirmarEliminacion(' + e.id + ')" class="btn btn-danger" style="padding: 0.25rem 0.6rem; font-size: 0.65rem;">🗑️ Eliminar</button>';
+                            }
+                            let row = '<tr>' +
+                                '<td>' + e.id + '</td>' +
+                                '<td>' + escapeHtml(e.codigo_inventario) + '</td>' +
+                                '<td>' + escapeHtml(e.nombre) + '</td>' +
+                                '<td>' + escapeHtml(e.ubicacion) + '</td>' +
+                                '<td>' + escapeHtml(e.responsable) + '</td>' +
+                                '<td><span class="badge ' + estadoClass + '">' + e.estado + '</span></td>' +
+                                '<td>' + (e.fecha_mantenimiento || '-') + '</td>' +
+                                '<td>' + (e.fecha_proximo_mantenimiento || '-') + '</td>' +
+                                '<td><div class="btn-group">' +
+                                '<a href="index.php?view=historial&id=' + e.id + '" class="btn btn-info" style="padding: 0.25rem 0.6rem; font-size: 0.65rem;">🔧 Mantenimiento</a>' +
+                                botonEliminar +
+                                '</div></td>' +
+                                '</tr>';
                             $('.table tbody').append(row);
                         });
                     }
@@ -328,7 +403,16 @@ $(document).ready(function() {
             });
         }, 300);
     });
-    function escapeHtml(text) { if(!text) return ''; return text.replace(/[&<>]/g, function(m) { if(m === '&') return '&amp;'; if(m === '<') return '&lt;'; if(m === '>') return '&gt;'; return m; }); }
+    
+    function escapeHtml(text) { 
+        if(!text) return ''; 
+        return text.replace(/[&<>]/g, function(m) { 
+            if(m === '&') return '&amp;'; 
+            if(m === '<') return '&lt;'; 
+            if(m === '>') return '&gt;'; 
+            return m; 
+        }); 
+    }
 });
 </script>
 

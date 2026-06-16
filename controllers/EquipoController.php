@@ -54,6 +54,7 @@ class EquipoController {
                 $_POST['responsable'],
                 $_POST['fecha_proximo_mantenimiento']
             );
+            $_SESSION['toast'] = ['type' => 'success', 'message' => '✅ Equipo registrado correctamente'];
         }
         header('Location: index.php?view=listar');
         exit;
@@ -75,6 +76,7 @@ class EquipoController {
                 $_POST['responsable'],
                 $_POST['fecha_proximo_mantenimiento']
             );
+            $_SESSION['toast'] = ['type' => 'success', 'message' => '✏️ Equipo actualizado correctamente'];
         }
         header('Location: index.php?view=listar');
         exit;
@@ -82,6 +84,7 @@ class EquipoController {
 
     public function eliminar($id) {
         $this->modelo->eliminar($id);
+        $_SESSION['toast'] = ['type' => 'success', 'message' => '🗑️ Equipo eliminado correctamente'];
         header('Location: index.php?view=listar');
         exit;
     }
@@ -102,6 +105,7 @@ class EquipoController {
                 $_POST['estado'],
                 $_POST['fecha_proximo_mantenimiento']
             );
+            $_SESSION['toast'] = ['type' => 'success', 'message' => '🔧 Mantenimiento registrado correctamente'];
             header('Location: index.php?view=historial&id=' . $_POST['equipo_id']);
             exit;
         }
