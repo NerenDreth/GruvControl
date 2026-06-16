@@ -25,11 +25,13 @@ DROP TABLE IF EXISTS `bitacora`;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `bitacora` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `usuario` varchar(100) NOT NULL,
+  `usuario_id` int(11) DEFAULT NULL,
   `accion` text NOT NULL,
   `fecha` datetime DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  PRIMARY KEY (`id`),
+  KEY `usuario_id` (`usuario_id`),
+  CONSTRAINT `1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -40,18 +42,21 @@ SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `bitacora` WRITE;
 /*!40000 ALTER TABLE `bitacora` DISABLE KEYS */;
 INSERT INTO `bitacora` VALUES
-(1,'admin','creó equipo Lenovo IdeaPad Slim 3','2026-06-14 09:08:03'),
-(2,'admin','creó equipo Dell','2026-06-14 09:08:36'),
-(3,'admin','creó equipo HP','2026-06-14 09:10:13'),
-(4,'admin','creó equipo MacBook','2026-06-14 09:11:10'),
-(5,'admin','creó equipo Mac Mini','2026-06-14 09:12:48'),
-(6,'admin','creó equipo Tla','2026-06-14 09:13:29'),
-(7,'admin','creó equipo arsiten','2026-06-14 09:13:56'),
-(8,'admin','creó equipo aietsn','2026-06-14 09:14:21'),
-(9,'admin','creó equipo arietsai','2026-06-14 09:14:48'),
-(10,'admin','creó equipo hzkd','2026-06-14 09:15:04'),
-(11,'admin','creó equipo vker','2026-06-14 09:15:23'),
-(12,'admin','registró mantenimiento del equipo 1','2026-06-14 10:59:10');
+(1,3,'creó equipo Lenovo Ideapad Slim 3','2026-06-15 23:05:58'),
+(2,3,'registró mantenimiento del equipo 6','2026-06-15 23:07:00'),
+(3,4,'registró mantenimiento del equipo 4','2026-06-15 23:18:42'),
+(4,3,'creó equipo Debian-SRV','2026-06-16 07:46:31'),
+(5,3,'creó equipo MacBook Neo','2026-06-16 07:47:41'),
+(6,3,'registró mantenimiento del equipo 3','2026-06-16 07:49:08'),
+(7,4,'registró mantenimiento del equipo 2','2026-06-16 07:50:46'),
+(8,4,'registró mantenimiento del equipo 1','2026-06-16 07:53:25'),
+(9,4,'registró mantenimiento del equipo 1','2026-06-16 07:55:43'),
+(10,4,'creó equipo HP-Lptp','2026-06-16 07:57:17'),
+(11,4,'creó equipo Lenovo Thinkpad','2026-06-16 08:01:00'),
+(12,4,'registró mantenimiento del equipo 8','2026-06-16 08:04:56'),
+(13,4,'registró mantenimiento del equipo 3','2026-06-16 08:06:37'),
+(14,3,'registró mantenimiento del equipo 8','2026-06-16 08:12:03'),
+(15,3,'creó equipo DELL-D11','2026-06-16 08:14:16');
 /*!40000 ALTER TABLE `bitacora` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
@@ -70,11 +75,13 @@ CREATE TABLE `equipos` (
   `estado` varchar(50) NOT NULL,
   `codigo_inventario` varchar(50) NOT NULL,
   `ubicacion` varchar(100) NOT NULL,
-  `responsable` varchar(100) NOT NULL,
+  `responsable_id` int(11) DEFAULT NULL,
   `fecha_mantenimiento` datetime DEFAULT NULL,
   `fecha_proximo_mantenimiento` date DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  PRIMARY KEY (`id`),
+  KEY `responsable_id` (`responsable_id`),
+  CONSTRAINT `1` FOREIGN KEY (`responsable_id`) REFERENCES `usuarios` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -85,17 +92,17 @@ SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `equipos` WRITE;
 /*!40000 ALTER TABLE `equipos` DISABLE KEYS */;
 INSERT INTO `equipos` VALUES
-(1,'Lenovo IdeaPad Slim 3','Operativo','69','Mi Casa','admin','2026-06-14 10:59:10','2026-12-14'),
-(2,'Dell','Mantenimiento','123','De el','admin','2026-06-14 09:08:36','2026-07-04'),
-(3,'HP','Dañado','654','Calle','admin','2026-06-14 09:10:13','2026-12-14'),
-(4,'MacBook','Operativo','999','My house','admin','2026-06-14 09:11:10','2026-12-06'),
-(5,'Mac Mini','Operativo','432','Tururu','admin','2026-06-14 09:12:48','2027-01-02'),
-(6,'Tla','Dañado','533','adi','admin','2026-06-14 09:13:29','2026-06-07'),
-(7,'arsiten','Mantenimiento','75','ariestag','admin','2026-06-14 09:13:56','2026-07-07'),
-(8,'aietsn','Operativo','859','arshvvv','admin','2026-06-14 09:14:21','2026-01-08'),
-(9,'arietsai','Dañado','969','vhv','admin','2026-06-14 09:14:48','2026-07-07'),
-(10,'hzkd','Operativo','9604','imi','admin','2026-06-14 09:15:04','2026-08-08'),
-(11,'vker','Mantenimiento','7503','oteg','admin','2026-06-14 09:15:23','2026-09-09');
+(1,'Servidor Dell PowerEdge','Operativo','SRV-001','Data Center',3,'2026-06-16 07:55:43','2026-12-07'),
+(2,'Impresora HP LaserJet','Operativo','IMP-002','Recepción',3,'2026-06-16 07:50:46','2026-08-08'),
+(3,'PC Escritorio Lenovo','Mantenimiento','PC-003','Ventas',3,'2026-06-16 08:06:37','2026-02-01'),
+(4,'Laptop MacBook Pro','Operativo','LAP-004','Gerencia',3,'2026-06-15 23:18:42','2026-08-08'),
+(5,'Switch Cisco','Dañado','SW-005','Sala de Servidores',3,'2026-05-01 10:30:00','2026-06-01'),
+(6,'Lenovo Ideapad Slim 3','Operativo','LNX-69','Servidores',3,'2026-06-15 23:07:00','2027-01-01'),
+(7,'Debian-SRV','Operativo','DEB-SRV','Servidores',3,'2026-06-16 07:46:31','2026-09-09'),
+(8,'MacBook Neo','Mantenimiento','MBN-001','Ventas',3,'2026-06-16 08:12:03','2026-12-07'),
+(9,'HP-Lptp','Dañado','002','Contaduria',4,'2026-06-16 07:57:17','2026-12-07'),
+(10,'Lenovo Thinkpad','Mantenimiento','003','Recuros Humanos',4,'2026-06-16 08:01:00','2026-12-08'),
+(11,'DELL-D11','Dañado','004','Ventas',3,'2026-06-16 08:14:16','2026-12-07');
 /*!40000 ALTER TABLE `equipos` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
@@ -112,14 +119,16 @@ CREATE TABLE `historial_mantenimiento` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `equipo_id` int(11) NOT NULL,
   `descripcion` text NOT NULL,
-  `tecnico` varchar(100) NOT NULL,
+  `usuario_id` int(11) DEFAULT NULL,
   `observaciones` text DEFAULT NULL,
   `estado` varchar(30) NOT NULL DEFAULT 'Operativo',
   `fecha` datetime DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `equipo_id` (`equipo_id`),
-  CONSTRAINT `1` FOREIGN KEY (`equipo_id`) REFERENCES `equipos` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  KEY `usuario_id` (`usuario_id`),
+  CONSTRAINT `1` FOREIGN KEY (`equipo_id`) REFERENCES `equipos` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `2` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -130,7 +139,15 @@ SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `historial_mantenimiento` WRITE;
 /*!40000 ALTER TABLE `historial_mantenimiento` DISABLE KEYS */;
 INSERT INTO `historial_mantenimiento` VALUES
-(1,1,'Se le realizo limpieza interna y externa, se le aplico nueva pasta termica','admin','Verificar estado cada 6 meses','Operativo','2026-06-14 10:59:10');
+(1,6,'Se realizo actualizacion de paquetes de linux',3,'realizar periodicamente limpieza externa','Operativo','2026-06-15 23:07:00'),
+(2,4,'Se realizo instalacion de nueva version de Macos',4,'','Operativo','2026-06-15 23:18:42'),
+(3,3,'Se realizo mantenimiento preventivo en software',3,'Verificar redimiento en pruebas futuras','Mantenimiento','2026-06-16 07:49:08'),
+(4,2,'Se estara realizando pruebas y mantenimiento correctivo en sus componentes',4,'','Mantenimiento','2026-06-16 07:50:46'),
+(5,1,'Se realizo diagnostico de operacion y se determino mover a estado de mantenimiento hasta una proxima fecha',4,'','Mantenimiento','2026-06-16 07:53:25'),
+(6,1,'Se diagnostico completa falla',4,'Reemplazar componentes','Mantenimiento','2026-06-16 07:55:43'),
+(7,8,'Se realizo limpieza de pantalla',4,'','Mantenimiento','2026-06-16 08:04:56'),
+(8,3,'Instalacion de drivers',4,'','Operativo','2026-06-16 08:06:37'),
+(9,8,' Se realizo diagnostico y se determino realizar limpieza de teclado',3,'','Mantenimiento','2026-06-16 08:12:03');
 /*!40000 ALTER TABLE `historial_mantenimiento` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
@@ -151,7 +168,7 @@ CREATE TABLE `usuarios` (
   `fecha_creacion` timestamp NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `usuario` (`usuario`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -162,8 +179,8 @@ SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `usuarios` WRITE;
 /*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
 INSERT INTO `usuarios` VALUES
-(1,'admin','$2y$12$UIC3nKpD/K1kFdCNruxyquPTX7E8LZoX1w94GyBcvjVaBCrZB8VQi','Administrador','2026-06-14 03:08:01'),
-(2,'tecnico','tecnico123','Tecnico','2026-06-14 03:08:01');
+(3,'admin','$2y$12$OrsqkPPlhtQPdCnhLpFNu.zCw4ek0KlIhdtJziTW7WtgdRAliGx/i','Administrador','2026-06-16 04:52:27'),
+(4,'tecnico','$2y$12$VABbhnogYvqsAXXDf6bhFewyVhsjc4/SMDWdyUV.2FlwZtoaFF7g.','Tecnico','2026-06-16 04:52:27');
 /*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
@@ -178,4 +195,4 @@ SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-06-14 12:37:00
+-- Dump completed on 2026-06-16  8:28:43

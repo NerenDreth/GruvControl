@@ -84,21 +84,27 @@ class Equipo {
 }
 
     public function registrarMantenimiento($equipoId, $usuario_id, $descripcion, $observaciones, $estado, $fechaProximo) {
-        $stmt = $this->db->prepare(
-            "INSERT INTO historial_mantenimiento (equipo_id, usuario_id, descripcion, observaciones, estado)
-             VALUES (?, ?, ?, ?, ?)"
+    // Insertar en historial
+    $stmt = $this->db->prepare(
+        "INSERT INTO historial_mantenimiento (equipo_id, usuario_id, descripcion, observaciones, estado)
+         VALUES (?, ?, ?, ?, ?)"
+    );
+    $resultado = $stmt->execute([$equipoId, $usuario_id, $descripcion, $observaciones, $estado]);
+    
+    if($resultado){
+        // Actualizar el estado del equipo también
+        $actualizarEquipo = $this->db->prepare(
+            "UPDATE equipos 
+             SET fecha_mantenimiento = NOW(), 
+                 fecha_proximo_mantenimiento = ?,
+                 estado = ?   -- <-- ESTA ES LA LÍNEA QUE FALTABA
+             WHERE id = ?"
         );
-        $resultado = $stmt->execute([$equipoId, $usuario_id, $descripcion, $observaciones, $estado]);
-        
-        if($resultado){
-            $actualizarEquipo = $this->db->prepare(
-                "UPDATE equipos SET fecha_mantenimiento = NOW(), fecha_proximo_mantenimiento = ? WHERE id = ?"
-            );
-            $actualizarEquipo->execute([$fechaProximo, $equipoId]);
-            $this->registrarBitacora($usuario_id, 'registró mantenimiento del equipo '.$equipoId);
-        }
-        return $resultado;
+        $actualizarEquipo->execute([$fechaProximo, $estado, $equipoId]);
+        $this->registrarBitacora($usuario_id, 'registró mantenimiento del equipo '.$equipoId);
     }
+    return $resultado;
+}
 
     private function registrarBitacora($usuario_id, $accion) {
         $stmt = $this->db->prepare("INSERT INTO bitacora (usuario_id, accion) VALUES (?, ?)");
