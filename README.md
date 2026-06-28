@@ -17,15 +17,7 @@ GruvControl es una aplicación web que permite registrar y dar seguimiento al ma
 - Dashboard con historial de actividades
 - Interfaz con tema visual Gruvbox
 
-## Instalación local
-1. Clona el repositorio
-   git clone https://github.com/NerenDreth/GruvControl.git
-2. Importa la base de datos
-   Ejecuta instalacion.sql y mantenimiento.sql en tu gestor MySQL
-3. Configura la conexión en /config
-4. Levanta un servidor local (XAMPP, Laragon, etc.)
-5. Abre index.php en el navegador
 
 ## Autor
 Luis Omar Estupiñán Sánchez
-ITCA-FEPADE — Ingeniería en Desarrollo de Software
+Software Developer
